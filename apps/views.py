@@ -2,7 +2,7 @@ from django.urls import reverse_lazy
 from django.views.generic import FormView, DetailView, ListView
 
 from apps.forms import MessageForm
-from apps.models import Project, Skill, Category
+from apps.models import Project, Skill, Category, User
 
 
 class MessageView(FormView, ListView):
@@ -18,6 +18,7 @@ class MessageView(FormView, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['user'] = User.objects.filter(username='admin').first()
         context['skills'] = Skill.objects.all()
         context['categories'] = Category.objects.all()
         return context
