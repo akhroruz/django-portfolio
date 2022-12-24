@@ -1,0 +1,47 @@
+before_script:
+  - "export PROJECT_NAME=ahror"
+  - "export PROJECT_DIR=/var/www/${PROJECT_NAME}/backend"
+  - "export BUILD_DIR=/var/www/${PROJECT_NAME}/tmp"
+  - "whoami"
+  - "echo $CI_PROJECT_DIR"
+  - "echo \"Current location:\" $PWD"
+  - "python3 --version"
+  - "pip3 --version"
+
+
+build:
+  stage: build
+  script:
+    - "sudo rm -rf ${BUILD_DIR}"
+    - "mkdir -p ${BUILD_DIR}"
+    - "echo $CI_PROJECT_DIR"
+    # Copy project
+    - "cp -r `pwd`/* ${BUILD_DIR}/"
+    - "cp -r `pwd`/.git ${BUILD_DIR}/"
+    - "cd $BUILD_DIR"
+    - "python3 -m venv venv"
+    - "source venv/bin/activate"
+    - "pip install -r requirements.txt"
+    - "sudo systemctl enable ${PROJECT_NAME}.service"
+    - "sudo systemctl start ${PROJECT_NAME}.service"
+  tags:
+    - alif-shop-api
+  only:
+    - build
+
+deploy:
+  stage: deploy
+  script:
+    - "sudo rm -rf ${PROJECT_DIR}"
+    - "mkdir -p ${PROJECT_DIR}"
+    - "echo $CI_PROJECT_DIR"
+    - "cp -r $CI_PROJECT_DIR/* ${PROJECT_DIR}/"
+    - "cp -r $CI_PROJECT_DIR/.git ${PROJECT_DIR}/"
+    - "cd $PROJECT_DIR"
+    - "source ../venv/bin/activate"
+    - "make"
+    - "sudo systemctl restart ${PROJECT_NAME}.service && sudo systemctl restart nginx"
+  only:
+    - main
+  tags:
+    - alif-shop-api
